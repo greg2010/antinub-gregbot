@@ -6,6 +6,7 @@ Configures logging, loads startup extensions and starts the bot.
 import sys
 import os
 
+import yaml
 import discord.ext.commands as commands
 from tinydb import TinyDB
 
@@ -24,14 +25,20 @@ def get_config():
 
     return conf
 
+def get_ext_config():
+    raw_yaml = os.environ.get("GREGBOT_EXT_CONFIG")
+    parsed = yaml.load(raw_yaml)
+    return parsed
 
-def start_bot(conf):
+
+def start_bot(conf, ext_conf):
     """Attempt to load required config or ask user (generally first time).
 
     """
     bot = commands.Bot(when_mentioned_or(conf['cmd_prefixes']), \
         owner_id=conf['owner_id'], pm_help=True)
     bot.loop.create_task(when_ready(bot, conf['loaded_extensions']))
+    bot.ext_config = ext_conf
     bot.run(conf['token'])
 
 
@@ -81,4 +88,5 @@ def load_extensions(bot, ext_list):
 if __name__ == '__main__':
     configure_logging()
     config = get_config()
-    start_bot(config)
+    ext_config = get_ext_config()
+    start_bot(config, ext_config)
