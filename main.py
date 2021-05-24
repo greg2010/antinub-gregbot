@@ -6,9 +6,9 @@ Configures logging, loads startup extensions and starts the bot.
 import sys
 import os
 
+from pathlib import Path
 import yaml
 import discord.ext.commands as commands
-from tinydb import TinyDB
 
 from utils.log import configure_logging, get_logger
 
@@ -26,9 +26,32 @@ def get_config():
     return conf
 
 def get_ext_config():
+    '''
+    Attempts to read the extensions config from either the environment or a file
+    '''
     raw_yaml = os.environ.get("GREGBOT_EXT_CONFIG")
-    parsed = yaml.load(raw_yaml)
-    return parsed
+    yaml_rel_path = os.environ.get("GREGBOT_EXT_CONFIG_PATH")
+
+    # If ext_config is supplied via an env var, try to parse that.
+    if raw_yaml is not None:
+        parsed = yaml.load(raw_yaml)
+        return parsed
+
+    # If the config was not provided via env var, try reading from file,
+    # fallback to 'config.yaml' in the working directory.
+    yaml_path = None
+    if yaml_rel_path is not None:
+        yaml_path = Path(__file__).parent / yaml_rel_path
+    else:
+        yaml_path = Path(__file__).parent / 'config.yaml'
+
+    if Path.exists(yaml_path):
+        with open(yaml_path, 'r') as f:
+            parsed = yaml.load(f)
+            return parsed
+
+    # If no config is supplied, return None
+    return None
 
 
 def start_bot(conf, ext_conf):
