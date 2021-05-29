@@ -13,10 +13,10 @@ class DiscordRelay(commands.Cog, name='DiscordRelay'):
         self.logger = get_logger(__name__)
         self.bot = bot
         self.config = config
-        self.config["embed_colour"] = get_embed_colour(self.config["logo_url"])
         self.client = Client(loop=bot.loop)
         self.client.event(self.on_ready)
         self.client.event(self.on_message)
+        self._embed_colour_cache = {}
         bot.loop.create_task(self.client.start(config["token"]))
 
     def disconnect(self):
@@ -30,6 +30,28 @@ class DiscordRelay(commands.Cog, name='DiscordRelay'):
             state['guilds'] = self.client.guilds
 
         return state
+
+    def get_message_logo(self, message):
+        '''
+        Extracts message logo url from the guild logo. Falls back to the default logo otherwise.
+        '''
+        if message.guild is not None:
+            icon_asset = message.guild.icon_url
+            if icon_asset is not None and not message.guild.is_icon_animated():
+                return str(icon_asset)
+
+        return self.config['default_icon_url']
+
+    def get_cached_embed_colour(self, url):
+        '''
+        Stores colourthief output locally for reuse
+        '''
+        if url in self._embed_colour_cache:
+            return self._embed_colour_cache[url]
+
+        colour = get_embed_colour(url)
+        self._embed_colour_cache[url] = colour
+        return colour
 
     def route_message(self, message):
         '''
@@ -64,6 +86,7 @@ class DiscordRelay(commands.Cog, name='DiscordRelay'):
 
     async def on_message(self, message):
         if message.mention_everyone:
+            message_logo = self.get_message_logo(message)
             package = {
                 'body': message.clean_content,
                 'sender': message.author.display_name,
@@ -72,7 +95,7 @@ class DiscordRelay(commands.Cog, name='DiscordRelay'):
                     message.guild.name,
                     message.channel.name or "Private Channel"
                 ),
-                'logo_url': self.config['logo_url'],
-                'embed_colour': self.config["embed_colour"]
+                'logo_url': message_logo,
+                'embed_colour': self.get_cached_embed_colour(message_logo)
             }
             self.bot.dispatch('broadcast', package)
