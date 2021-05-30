@@ -38,7 +38,7 @@ class DiscordRelay(commands.Cog, name='DiscordRelay'):
         if message.guild is not None:
             icon_asset = message.guild.icon_url
             self.logger.debug('Guild {} asset {} is_animated {}'.format(message.guild.id, str(icon_asset), message.guild.is_icon_animated()))
-            if icon_asset is not None and not message.guild.is_icon_animated():
+            if icon_asset is not None:
                 return str(icon_asset)
 
         return self.config['default_icon_url']
