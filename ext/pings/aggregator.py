@@ -46,15 +46,14 @@ class PingAggregator(commands.Cog, name='PingAggregator'):
         for page in paginate:
             embed = self.ping_embed(package, page, paginate)
             embeds.append(embed)
-
         for destination in package['destinations']:
             channel_id = destination['channel_id']
             channel = self.bot.get_channel(channel_id)
 
             if channel:
                 embed = embeds[0]
-                await channel.send(embed=embed, content=destination.get('prefix')
-                )  # Only show prefix on first page.
+                # Only show prefix on first page.
+                await channel.send(embed=embed, content=destination.get('prefix'))
                 for embed in embeds[1:]:
                     await channel.send(embed=embed)
             else:
