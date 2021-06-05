@@ -1,4 +1,4 @@
-'''
+**'''
 Meme cog made by Steveizi for antinub-gregbot project.
 
 Contains several useless but fun commands
