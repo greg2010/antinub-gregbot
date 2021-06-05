@@ -82,14 +82,43 @@ class DiscordRelay(commands.Cog, name='DiscordRelay'):
                 ','.join(map(lambda x: str(x['channel_id']), destinations)) if len(destinations) > 0 else 'None'))
         return destinations
 
+
+    def stringify_embed(self, embed):
+        content = ''
+        if embed.title:
+            content += 'Title: {}\n'.format(embed.title)
+        if embed.author:
+            content += 'Author: {}\n'.format(embed.author.name)
+        if embed.description:
+            content += 'Description: {}\n'.format(embed.description)
+
+        for field in embed.fields:
+            content += '{}: {}\n'.format(field.name, field.value)
+
+        if embed.footer:
+            content += 'Footer: {}\n'.format(embed.footer.text)
+        if embed.timestamp:
+            content += 'Timestamp: {}\n'.format(embed.timestamp)
+
+        if content == '':
+            return None
+
+        return '====================\n{}===================='.format(content)
+
+
     async def on_ready(self):
         await self.client.change_presence(status=Status.invisible)
 
     async def on_message(self, message):
         if message.mention_everyone:
             message_logo = self.get_message_logo(message)
+            content = message.clean_content
+            for embed in message.embeds:
+                self.logger.debug('Converting embed for message_id={} to string {}'\
+                    .format(message.id, str(embed)))
+                content += '\n\n' + self.stringify_embed(embed)
             package = {
-                'body': message.clean_content,
+                'body': content,
                 'sender': message.author.display_name,
                 'destinations': self.route_message(message),
                 'description': '{}: {}'.format(
