@@ -20,3 +20,11 @@ pings:
             - channel_id: 5
               prefix: "@here"
   jabber_relays: []
+roleselfserve:
+  - guild_id: 123
+    carrier_channel_id: 123
+    role_relations:
+      - id: 123
+        emoji: ""
+      - id: 456
+        emoji: ""
