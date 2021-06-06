@@ -91,9 +91,7 @@ def load_extensions(bot, ext_list):
     bot.load_extension('core')
     logger.info('Successfully loaded core extensions')
 
-    loaded_extensions = ext_list
-
-    for ext in loaded_extensions.copy():
+    for ext in ext_list:
         ext_mod = 'ext.{}'.format(ext)
         if ext_mod not in bot.extensions:
             try:
@@ -102,7 +100,6 @@ def load_extensions(bot, ext_list):
             except Exception as error:
                 if ext_mod in sys.modules:
                     del sys.modules[ext_mod]
-                loaded_extensions.remove(ext)
                 logger.exception('Failed to load extension: %s', ext)
         else:
             logger.warning('Extension with same name already loaded: %s', ext)

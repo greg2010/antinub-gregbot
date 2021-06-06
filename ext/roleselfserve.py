@@ -18,6 +18,7 @@ class RoleSelfServe(commands.Cog, name="RoleSelfServe"):
         self.bot = bot
         self.config = bot.ext_config['roleselfserve']
         self._carrier_messages = {}
+        self.bot.loop.create_task(self.seed_carrier_messages())
 
 
     async def clear_carrier_channel(self, channel):
@@ -49,8 +50,8 @@ class RoleSelfServe(commands.Cog, name="RoleSelfServe"):
                 emoji_obj = emoji.emojize(':{}:'.format(role['emoji']), use_aliases=True)
             await message.add_reaction(emoji_obj)
 
-    @commands.command()
-    async def post_roles_messages(self, msg):
+
+    async def seed_carrier_messages(self):
         self._carrier_messages = {}
         for carrier in self.config:
             guild = self.bot.get_guild(carrier['guild_id'])
@@ -63,7 +64,6 @@ class RoleSelfServe(commands.Cog, name="RoleSelfServe"):
             self._carrier_messages[msg.id] = carrier['role_relations']
 
             await self.seed_reactions(guild, msg, carrier['role_relations'])
-
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
